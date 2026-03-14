@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.db
+*.ocr.txt
+dist/
+theology-12/output/*.md
+theology-12/output/*.json
+service-account.json
+.DS_Store
