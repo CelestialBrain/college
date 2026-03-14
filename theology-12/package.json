@@ -1,0 +1,24 @@
+{
+  "name": "theology-12",
+  "version": "1.0.0",
+  "description": "Theology 12 notes pipeline — OCR, compile, export via Vertex AI + SQLite",
+  "private": true,
+  "scripts": {
+    "extract": "ts-node scripts/extract-readings.ts",
+    "compile": "ts-node scripts/compile-notes.ts",
+    "export": "ts-node scripts/export.ts",
+    "all": "npm run extract && npm run compile && npm run export",
+    "reset-db": "node -e \"require('fs').rmSync('theology.db', { force: true }); console.log('theology.db deleted.');\""
+  },
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.9.3",
+    "better-sqlite3": "^11.9.1",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.13.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  }
+}
