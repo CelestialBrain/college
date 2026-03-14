@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theology 11 Reviewer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <nav id="nav">
+      <div class="nav-brand" onclick="showDashboard()">
+        <span class="nav-icon">✦</span>
+        <span>Theo 11</span>
+      </div>
+      <div class="nav-links">
+        <button class="nav-btn active" data-view="dashboard" onclick="showDashboard()">Dashboard</button>
+        <button class="nav-btn" data-view="flashcards" onclick="showFlashcards()">Flashcards</button>
+        <button class="nav-btn" data-view="quiz" onclick="showQuiz()">Quiz</button>
+      </div>
+      <div class="nav-search">
+        <input type="text" id="searchInput" placeholder="Search notes…" oninput="handleSearch(this.value)">
+      </div>
+    </nav>
+
+    <main id="content">
+      <div id="loading" class="loading-screen">
+        <div class="loading-spinner"></div>
+        <p>Loading study materials…</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

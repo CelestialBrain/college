@@ -7,6 +7,7 @@
     "extract": "ts-node scripts/extract-readings.ts",
     "compile": "ts-node scripts/compile-notes.ts",
     "handwritten": "ts-node scripts/extract-handwritten.ts",
+    "generate-reviewer": "ts-node scripts/generate-reviewer.ts",
     "export": "ts-node scripts/export.ts",
     "all": "npm run extract && npm run compile && npm run handwritten && npm run export",
     "reset-db": "node -e \"require('fs').rmSync('theology.db', { force: true }); console.log('theology.db deleted.');\""
