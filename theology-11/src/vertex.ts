@@ -10,7 +10,7 @@ if (!projectId) {
 const vertexAI = new VertexAI({ project: projectId, location });
 
 const model = vertexAI.getGenerativeModel({
-  model: 'gemini-2.0-flash-001',
+  model: 'gemini-2.5-pro',
 });
 
 /**
