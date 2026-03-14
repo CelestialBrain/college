@@ -25,14 +25,11 @@ function renderMarkdown(text) {
     }
 
     // Headers → styled divs
-    if (line.startsWith('### ')) {
+    const headerMatch = line.match(/^(#{1,6})\s+(.*)$/);
+    if (headerMatch) {
       if (inList) { html += '</ul>'; inList = false; }
-      html += `<h4 class="review-heading">${inlineFormat(line.slice(4))}</h4>`;
-      continue;
-    }
-    if (line.startsWith('## ')) {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += `<h3 class="review-heading">${inlineFormat(line.slice(3))}</h3>`;
+      const level = headerMatch[1].length > 3 ? 5 : headerMatch[1].length + 1; // Map #->h2, ##->h3, ###->h4, ####->h5
+      html += `<h${level} class="review-heading">${inlineFormat(headerMatch[2])}</h${level}>`;
       continue;
     }
 

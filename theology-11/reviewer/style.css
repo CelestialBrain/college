@@ -328,9 +328,9 @@ body {
 /* Key takeaways */
 .takeaways {
   margin-top: 24px;
-  padding: 20px;
-  background: var(--accent-soft);
-  border: 1px solid var(--border);
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border-hover);
   border-radius: var(--radius);
 }
 
@@ -752,6 +752,11 @@ body {
 .review-text strong {
   color: var(--text);
   font-weight: 600;
+  background-color: rgba(245, 158, 11, 0.35); /* Yellow/amber highlighter effect */
+  padding: 0 4px;
+  border-radius: 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .review-text em {
@@ -771,6 +776,16 @@ body {
 
 h3.review-heading {
   font-size: 1.2rem;
+}
+
+h4.review-heading {
+  font-size: 1.05rem;
+}
+
+h5.review-heading {
+  font-size: 1rem;
+  border-bottom: none;
+  margin: 20px 0 8px 0;
 }
 
 .review-list {
