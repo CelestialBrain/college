@@ -162,6 +162,7 @@ function showTopic(slug) {
       <button class="back-btn" onclick="showDashboard()">← Back</button>
       <h1>${topic.title}</h1>
       <span class="set-badge">${set.code} — ${set.title}</span>
+      <button class="highlight-toggle" id="highlightToggle" onclick="toggleHighlights()" title="Toggle highlights">🖍 Highlights: On</button>
     </div>
 
     <div class="topic-tabs">
@@ -173,8 +174,10 @@ function showTopic(slug) {
       <button class="topic-tab" onclick="switchTab(this, 'entries')">🗂 Raw Entries</button>
     </div>`;
 
-  // ── Full Review panel (main content) ──
+  // ── Full Review panel (main content + sidebar) ──
   html += `<div class="topic-content-panel active" id="panel-review">`;
+  html += `<div class="review-layout">`;
+  html += `<div class="review-main">`;
   
   // Full review (new field)
   if (topic.review) {
@@ -189,7 +192,32 @@ function showTopic(slug) {
     topic.keyTakeaways.forEach((t) => (html += `<li>${t}</li>`));
     html += `</ul></div>`;
   }
-  html += `</div>`;
+  html += `</div>`; // end review-main
+
+  // ── Sticky sidebar (desktop only) ──
+  const keyTerms = (topic.glossary || topic.glossaryTerms || []).slice(0, 8);
+  html += `<aside class="review-sidebar" id="review-sidebar">
+    <div class="sidebar-toc">
+      <div class="sidebar-section-label">📑 On this page</div>
+      <nav id="toc-nav"><div class="toc-loading">Loading…</div></nav>
+    </div>`;
+
+  if (keyTerms.length) {
+    html += `<div class="sidebar-terms">
+      <div class="sidebar-section-label">🔑 Key Terms</div>`;
+    keyTerms.forEach(g => {
+      html += `<div class="sidebar-term">
+        <span class="sidebar-term-name">${g.term}</span>
+        <span class="sidebar-term-def">${g.definition?.split('.')[0]}.</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `</aside>`;
+  html += `</div>`; // end review-layout
+  html += `</div>`; // end panel-review
+
 
   // ── Study Tips panel ──
   html += `<div class="topic-content-panel" id="panel-tips">`;
@@ -261,7 +289,44 @@ function showTopic(slug) {
 
   c.innerHTML = html;
   window.scrollTo(0, 0);
+  buildToc();
+
+  // Restore highlight state
+  const highlightBtn = document.getElementById('highlightToggle');
+  if (!highlightState) {
+    document.body.classList.add('no-highlights');
+    if (highlightBtn) highlightBtn.textContent = '🖍 Highlights: Off';
+  }
 }
+
+// ── Highlights state (persisted across topic navigations) ──
+let highlightState = true;
+
+function toggleHighlights() {
+  highlightState = !highlightState;
+  document.body.classList.toggle('no-highlights', !highlightState);
+  const btn = document.getElementById('highlightToggle');
+  if (btn) btn.textContent = `🖍 Highlights: ${highlightState ? 'On' : 'Off'}`;
+}
+
+// ── Build Table of Contents from rendered headings ──
+function buildToc() {
+  const toc = document.getElementById('toc-nav');
+  if (!toc) return;
+  const headings = document.querySelectorAll('#panel-review .review-heading');
+  if (!headings.length) { toc.innerHTML = '<span style="color:var(--text-muted);font-size:0.8rem">No sections found.</span>'; return; }
+  
+  let tocHtml = '';
+  headings.forEach((h, i) => {
+    h.id = `section-${i}`;
+    const level = parseInt(h.tagName[1]);
+    const indent = level > 3 ? 'toc-item-sub' : 'toc-item';
+    tocHtml += `<a class="${indent}" href="#section-${i}" onclick="event.preventDefault();document.getElementById('section-${i}').scrollIntoView({behavior:'smooth',block:'start'})">${h.textContent}</a>`;
+  });
+  toc.innerHTML = tocHtml;
+
+}
+
 
 function switchTab(btn, panelId) {
   document.querySelectorAll('.topic-tab').forEach((t) => t.classList.remove('active'));

@@ -749,6 +749,126 @@ body {
   text-align: justify;
 }
 
+/* ── Highlights toggle suppression ─────────────────────── */
+body.no-highlights .review-text strong {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* ── Highlight toggle button ────────────────────────────── */
+.highlight-toggle {
+  margin-left: auto;
+  padding: 6px 14px;
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.highlight-toggle:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+}
+
+/* ── Review page two-column layout ─────────────────────── */
+.review-layout {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.review-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Sticky sidebar ─────────────────────────────────────── */
+.review-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.sidebar-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+/* ToC nav */
+#toc-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toc-item {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 5px 8px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+
+.toc-item-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 4px 8px 4px 18px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+
+.toc-item:hover, .toc-item-sub:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Key terms sidebar */
+.sidebar-terms {
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+}
+
+.sidebar-term {
+  margin-bottom: 12px;
+}
+
+.sidebar-term-name {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
+.sidebar-term-def {
+  display: block;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 .review-text strong {
   color: var(--text);
   font-weight: 600;
@@ -998,7 +1118,7 @@ h5.review-heading {
   line-height: 1.4;
 }
 
-/* ── Responsive ──────────────────────────────────────────── */
+/* ── Responsive ────────────────────────────────────────── */
 @media (max-width: 768px) {
   #nav { flex-wrap: wrap; padding: 10px 16px; }
   .nav-search { width: 100%; order: 10; margin-left: 0; margin-top: 8px; }
@@ -1009,5 +1129,8 @@ h5.review-heading {
   .flashcard-text { font-size: 1rem; }
   .topic-tabs { gap: 0; }
   .topic-tab { padding: 8px 10px; font-size: 0.78rem; }
+  /* Hide the sidebar and highlights toggle on mobile */
+  .review-sidebar { display: none !important; }
+  .highlight-toggle { display: none !important; }
+  .review-layout { display: block; }
 }
-
