@@ -1,6 +1,7 @@
 /* ── Theology 11 Reviewer — App Logic ───────────────────── */
 
 let DATA = null;
+let READINGS_DATA = null;
 let currentView = 'dashboard';
 let flashcardIndex = 0;
 let flashcardDeck = [];
@@ -12,8 +13,14 @@ let selectedQuizTopics = new Set();
 // ── Init ────────────────────────────────────────────────────
 async function init() {
   try {
-    const res = await fetch('./reviewer-data.json');
-    DATA = await res.json();
+    const [mainRes, readingsRes] = await Promise.all([
+      fetch('./reviewer-data.json'),
+      fetch('./readings-data.json').catch(() => null),
+    ]);
+    DATA = await mainRes.json();
+    if (readingsRes?.ok) {
+      READINGS_DATA = await readingsRes.json();
+    }
     showDashboard();
   } catch (err) {
     document.getElementById('content').innerHTML = `
@@ -67,7 +74,7 @@ function showDashboard() {
       <div class="topics-grid">`;
 
     set.topics.forEach((topic) => {
-      const glossaryCount = topic.glossaryTerms?.length || 0;
+      const glossaryCount = topic.glossaryTerms?.length || topic.glossary?.length || 0;
       const quizCount = topic.quizQuestions?.length || 0;
       html += `
         <div class="topic-card" onclick="showTopic('${topic.slug}')">
@@ -95,6 +102,9 @@ function showTopic(slug) {
   setActiveNav(null);
   const c = document.getElementById('content');
 
+  // Determine glossary source (new cleaned or old raw)
+  const glossary = topic.glossary || topic.glossaryTerms || [];
+
   let html = `
     <div class="topic-header">
       <button class="back-btn" onclick="showDashboard()">← Back</button>
@@ -103,19 +113,28 @@ function showTopic(slug) {
     </div>
 
     <div class="topic-tabs">
-      <button class="topic-tab active" onclick="switchTab(this, 'summary')">Summary</button>
-      <button class="topic-tab" onclick="switchTab(this, 'tips')">Study Tips</button>
-      <button class="topic-tab" onclick="switchTab(this, 'connections')">Connections</button>
-      <button class="topic-tab" onclick="switchTab(this, 'glossary')">Glossary</button>
-      <button class="topic-tab" onclick="switchTab(this, 'entries')">All Entries</button>
+      <button class="topic-tab active" onclick="switchTab(this, 'review')">📖 Full Review</button>
+      <button class="topic-tab" onclick="switchTab(this, 'tips')">💡 Study Tips</button>
+      <button class="topic-tab" onclick="switchTab(this, 'connections')">🔗 Connections</button>
+      <button class="topic-tab" onclick="switchTab(this, 'glossary')">📚 Glossary</button>
+      <button class="topic-tab" onclick="switchTab(this, 'exam')">📝 Exam Prep</button>
+      <button class="topic-tab" onclick="switchTab(this, 'entries')">🗂 Raw Entries</button>
     </div>`;
 
-  // Summary panel
-  html += `<div class="topic-content-panel active" id="panel-summary">`;
-  if (topic.summary) {
+  // ── Full Review panel (main content) ──
+  html += `<div class="topic-content-panel active" id="panel-review">`;
+  
+  // Full review (new field)
+  if (topic.review) {
+    const paragraphs = topic.review.split('\n').filter((p) => p.trim());
+    html += `<div class="review-text">${paragraphs.map((p) => `<p>${p}</p>`).join('')}</div>`;
+  } else if (topic.summary) {
+    // Fallback to old summary
     const paragraphs = topic.summary.split('\n').filter((p) => p.trim());
-    html += `<div class="summary-text">${paragraphs.map((p) => `<p>${p}</p>`).join('')}</div>`;
+    html += `<div class="review-text">${paragraphs.map((p) => `<p>${p}</p>`).join('')}</div>`;
   }
+
+  // Key takeaways
   if (topic.keyTakeaways?.length) {
     html += `<div class="takeaways"><h3>⚡ Key Takeaways</h3><ul>`;
     topic.keyTakeaways.forEach((t) => (html += `<li>${t}</li>`));
@@ -123,40 +142,60 @@ function showTopic(slug) {
   }
   html += `</div>`;
 
-  // Tips panel
+  // ── Study Tips panel ──
   html += `<div class="topic-content-panel" id="panel-tips">`;
   if (topic.studyTips?.length) {
-    topic.studyTips.forEach((tip, i) => {
+    topic.studyTips.forEach((tip) => {
       html += `<div class="tip-card"><div class="tip-icon">💡</div><div>${tip}</div></div>`;
     });
   }
   html += `</div>`;
 
-  // Connections panel
+  // ── Connections panel (enhanced) ──
   html += `<div class="topic-content-panel" id="panel-connections">`;
   if (topic.connections?.length) {
+    html += `<p style="color: var(--text-dim); margin-bottom: 16px; font-size: 0.85rem;">Click a topic to navigate — see how "${topic.title}" connects throughout the course.</p>`;
     topic.connections.forEach((conn) => {
       const connSlug = findSlugByTitle(conn.topic);
       html += `<div class="connection-card" ${connSlug ? `onclick="showTopic('${connSlug}')"` : ''}>
         <div class="connection-topic">${conn.topic} →</div>
-        <div class="connection-explanation">${conn.explanation}</div>
+        <div class="connection-explanation">${conn.relationship || conn.explanation || ''}</div>
+        ${conn.example ? `<div class="connection-example">💬 ${conn.example}</div>` : ''}
       </div>`;
     });
   }
   html += `</div>`;
 
-  // Glossary panel
+  // ── Glossary panel (uses cleaned AI glossary) ──
   html += `<div class="topic-content-panel" id="panel-glossary">`;
-  if (topic.glossaryTerms?.length) {
-    topic.glossaryTerms.forEach((g) => {
-      html += `<div class="entry-item"><strong>${g.term}</strong><br>${g.definition}</div>`;
+  if (glossary.length) {
+    glossary.forEach((g) => {
+      html += `<div class="glossary-card">
+        <div class="glossary-term">${g.term}</div>
+        <div class="glossary-def">${g.definition}</div>
+      </div>`;
     });
   } else {
     html += `<p style="color: var(--text-dim)">No glossary terms for this topic.</p>`;
   }
   html += `</div>`;
 
-  // Entries panel
+  // ── Exam Prep panel ──
+  html += `<div class="topic-content-panel" id="panel-exam">`;
+  if (topic.examPrepQuestions?.length) {
+    html += `<p style="color: var(--text-dim); margin-bottom: 16px; font-size: 0.85rem;">Practice short-answer questions. Click to reveal model answers.</p>`;
+    topic.examPrepQuestions.forEach((q, i) => {
+      html += `<div class="exam-card" onclick="this.classList.toggle('revealed')">
+        <div class="exam-q"><span class="exam-q-num">Q${i + 1}</span> ${q.question}</div>
+        <div class="exam-a"><div class="exam-a-label">Model Answer</div>${q.modelAnswer}</div>
+      </div>`;
+    });
+  } else {
+    html += `<p style="color: var(--text-dim)">No exam prep questions available. Run regeneration.</p>`;
+  }
+  html += `</div>`;
+
+  // ── Raw entries panel ──
   html += `<div class="topic-content-panel" id="panel-entries">`;
   const types = [...new Set(topic.entries.map((e) => e.contentType))];
   html += `<div class="entry-filters">`;
@@ -172,6 +211,7 @@ function showTopic(slug) {
   html += `</div></div>`;
 
   c.innerHTML = html;
+  window.scrollTo(0, 0);
 }
 
 function switchTab(btn, panelId) {
@@ -184,7 +224,7 @@ function switchTab(btn, panelId) {
 function filterEntries(btn, type) {
   document.querySelectorAll('.filter-btn').forEach((b) => b.classList.remove('active'));
   btn.classList.add('active');
-  const items = document.querySelectorAll('.entry-item');
+  const items = document.querySelectorAll('#panel-entries .entry-item');
   items.forEach((item) => {
     if (type === 'all' || item.dataset.type === type) {
       item.style.display = '';
@@ -207,16 +247,16 @@ function renderEntry(e) {
 // ── Flashcard Mode ──────────────────────────────────────────
 function showFlashcards() {
   setActiveNav('flashcards');
-  // Build deck from all glossary terms + quiz questions
   flashcardDeck = [];
   DATA.sets.forEach((set) => {
     set.topics.forEach((topic) => {
-      (topic.glossaryTerms || []).forEach((g) => {
+      // Use cleaned glossary if available, fallback to raw
+      const glossary = topic.glossary || topic.glossaryTerms || [];
+      glossary.forEach((g) => {
         flashcardDeck.push({ front: g.term, back: g.definition, topic: topic.title, type: 'term' });
       });
     });
   });
-  // Shuffle
   flashcardDeck.sort(() => Math.random() - 0.5);
   flashcardIndex = 0;
   renderFlashcard();
@@ -341,7 +381,7 @@ function startQuiz() {
   }
 
   quizQuestions.sort(() => Math.random() - 0.5);
-  quizQuestions = quizQuestions.slice(0, 20); // Max 20 per session
+  quizQuestions = quizQuestions.slice(0, 20);
   quizIndex = 0;
   quizScore = 0;
   renderQuizQuestion();
@@ -407,6 +447,160 @@ function answerQuiz(selected, correct) {
   }, 2500);
 }
 
+// ── Readings View ───────────────────────────────────────────
+function showReadings() {
+  setActiveNav('readings');
+  const c = document.getElementById('content');
+
+  if (!READINGS_DATA?.readings?.length) {
+    c.innerHTML = `<div class="loading-screen">
+      <p style="color: var(--text-dim)">No readings data available.</p>
+      <p style="color: var(--text-muted); font-size: 0.85rem;">Run: npm run generate-readings</p>
+    </div>`;
+    return;
+  }
+
+  let html = `
+    <div class="dash-header">
+      <h1>Course Readings</h1>
+      <p>Deep study guides for each assigned reading</p>
+    </div>`;
+
+  READINGS_DATA.readings.forEach((r, i) => {
+    const termCount = r.keyTerms?.length || 0;
+    const examCount = r.examQuestions?.length || 0;
+    html += `
+      <div class="reading-card" onclick="showReading(${i})">
+        <div class="reading-num">R${i + 1}</div>
+        <div class="reading-info">
+          <h3>${r.title || r.filename}</h3>
+          <div class="reading-author">${r.author || ''}</div>
+          <div class="topic-meta">
+            <span>📝 ${r.entryCount} entries</span>
+            <span>🔑 ${termCount} key terms</span>
+            <span>📝 ${examCount} exam Q's</span>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  c.innerHTML = html;
+}
+
+function showReading(index) {
+  const r = READINGS_DATA.readings[index];
+  if (!r) return;
+
+  setActiveNav(null);
+  const c = document.getElementById('content');
+
+  let html = `
+    <div class="topic-header">
+      <button class="back-btn" onclick="showReadings()">← Back to Readings</button>
+      <h1>${r.title || r.filename}</h1>
+      ${r.author ? `<span class="set-badge">by ${r.author}</span>` : ''}
+    </div>
+
+    <div class="topic-tabs">
+      <button class="topic-tab active" onclick="switchTab(this, 'r-overview')">📖 Overview</button>
+      <button class="topic-tab" onclick="switchTab(this, 'r-terms')">🔑 Key Terms</button>
+      <button class="topic-tab" onclick="switchTab(this, 'r-ideas')">💭 Key Ideas</button>
+      <button class="topic-tab" onclick="switchTab(this, 'r-connections')">🔗 Connections</button>
+      <button class="topic-tab" onclick="switchTab(this, 'r-exam')">📝 Exam Prep</button>
+    </div>`;
+
+  // Overview
+  html += `<div class="topic-content-panel active" id="panel-r-overview">`;
+  if (r.overview) {
+    html += `<div class="review-text">${r.overview.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}</div>`;
+  }
+  html += `</div>`;
+
+  // Key Terms
+  html += `<div class="topic-content-panel" id="panel-r-terms">`;
+  if (r.keyTerms?.length) {
+    html += `<p style="color: var(--text-dim); margin-bottom: 16px; font-size: 0.85rem;">Terms your professor is most likely to quiz you on from this reading.</p>`;
+    r.keyTerms.forEach(t => {
+      html += `<div class="glossary-card">
+        <div class="glossary-term">${t.term}</div>
+        <div class="glossary-def">${t.definition}</div>
+        ${t.significance ? `<div class="term-significance">⚡ ${t.significance}</div>` : ''}
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  // Key Ideas
+  html += `<div class="topic-content-panel" id="panel-r-ideas">`;
+  if (r.keyIdeas?.length) {
+    r.keyIdeas.forEach(idea => {
+      html += `<div class="idea-card">
+        <div class="idea-title">${idea.idea}</div>
+        <div class="idea-explanation">${idea.explanation}</div>
+        ${idea.example ? `<div class="idea-example">📌 ${idea.example}</div>` : ''}
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  // Connections
+  html += `<div class="topic-content-panel" id="panel-r-connections">`;
+  if (r.connections?.length) {
+    r.connections.forEach(conn => {
+      const connSlug = findSlugByTitle(conn.courseTopic);
+      html += `<div class="connection-card" ${connSlug ? `onclick="showTopic('${connSlug}')"` : ''}>
+        <div class="connection-topic">${conn.courseTopic} →</div>
+        <div class="connection-explanation">${conn.howItConnects}</div>
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  // Exam Prep (short-answer + quiz)
+  html += `<div class="topic-content-panel" id="panel-r-exam">`;
+  if (r.examQuestions?.length) {
+    html += `<h3 style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 16px;">Short Answer Questions</h3>`;
+    r.examQuestions.forEach((q, i) => {
+      html += `<div class="exam-card" onclick="this.classList.toggle('revealed')">
+        <div class="exam-q"><span class="exam-q-num">Q${i + 1}</span> ${q.question}</div>
+        <div class="exam-a"><div class="exam-a-label">Model Answer</div>${q.modelAnswer}</div>
+      </div>`;
+    });
+  }
+  if (r.quizQuestions?.length) {
+    html += `<h3 style="font-size: 0.9rem; color: var(--text-dim); margin: 24px 0 16px;">Multiple Choice</h3>`;
+    r.quizQuestions.forEach((q, i) => {
+      html += `<div class="quiz-question-card" style="margin-bottom: 12px;">
+        <div class="quiz-q-text">${q.question}</div>
+        <div class="quiz-choices">`;
+      q.choices.forEach((choice, ci) => {
+        html += `<button class="quiz-choice" onclick="revealReadingQuiz(this, ${ci}, ${q.correctIndex}, '${(q.explanation || '').replace(/'/g, "\\'")}')">${choice}</button>`;
+      });
+      html += `</div><div class="quiz-explanation" id="r-quiz-exp-${i}"></div></div>`;
+    });
+  }
+  html += `</div>`;
+
+  c.innerHTML = html;
+  window.scrollTo(0, 0);
+}
+
+function revealReadingQuiz(btn, selected, correct, explanation) {
+  const card = btn.closest('.quiz-question-card');
+  const choices = card.querySelectorAll('.quiz-choice');
+  if (choices[0].classList.contains('answered')) return;
+  choices.forEach((c, i) => {
+    c.classList.add('answered');
+    if (i === correct) c.classList.add('correct');
+    if (i === selected && i !== correct) c.classList.add('wrong');
+  });
+  const expDiv = card.querySelector('.quiz-explanation');
+  if (expDiv && explanation) {
+    expDiv.textContent = explanation;
+    expDiv.classList.add('show');
+  }
+}
+
 // ── Search ──────────────────────────────────────────────────
 function handleSearch(query) {
   if (!query || query.length < 2) {
@@ -421,11 +615,16 @@ function handleSearch(query) {
 
   DATA.sets.forEach((set) => {
     set.topics.forEach((topic) => {
+      // Search entries
       topic.entries.forEach((e) => {
         if (e.content.toLowerCase().includes(lower)) {
           results.push({ ...e, topicTitle: topic.title, topicSlug: topic.slug });
         }
       });
+      // Also search reviews
+      if (topic.review?.toLowerCase().includes(lower)) {
+        results.push({ content: topic.review.substring(0, 300) + '…', contentType: 'review', sourceType: 'AI', topicTitle: topic.title, topicSlug: topic.slug });
+      }
     });
   });
 
@@ -494,6 +693,7 @@ function formatType(type) {
     'raw-text': 'Note',
     'chapter-heading': 'Heading',
     'distinction': 'Distinction',
+    'review': 'Review',
   };
   return map[type] || type;
 }
