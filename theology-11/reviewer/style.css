@@ -330,7 +330,7 @@ body {
   margin-top: 24px;
   padding: 20px;
   background: var(--accent-soft);
-  border: 1px solid rgba(124, 108, 240, 0.15);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
@@ -914,7 +914,7 @@ h3.review-heading {
 }
 
 .reading-num {
-  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  background: linear-gradient(135deg, var(--accent), #b48a66);
   color: #fff;
   width: 48px;
   height: 48px;
