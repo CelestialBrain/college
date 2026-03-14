@@ -847,26 +847,26 @@ body.no-highlights .review-text strong {
 /* Key terms sidebar */
 .sidebar-terms {
   border-top: 1px solid var(--border);
-  padding-top: 18px;
+  padding-top: 24px;
 }
 
 .sidebar-term {
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .sidebar-term-name {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--accent);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .sidebar-term-def {
   display: block;
-  font-size: 0.73rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .review-text strong {
