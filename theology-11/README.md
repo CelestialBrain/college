@@ -8,11 +8,11 @@ A fully automated TypeScript pipeline that OCRs theology reading PDFs, compiles 
 
 The pipeline has three stages:
 
-| Script | Command | Purpose |
-|---|---|---|
-| `scripts/extract-readings.ts` | `npm run extract` | Two-pass: OCR PDFs via Vertex AI → parse structured entries → store in SQLite |
-| `scripts/compile-notes.ts` | `npm run compile` | Compile typed notes and Granola.ai lecture transcripts → parse structured entries → store in SQLite |
-| `scripts/export.ts` | `npm run export` | Query DB → generate `output/compiled-notes.md` and `output/theology-data.json` |
+| Script                        | Command           | Purpose                                                                                             |
+| ----------------------------- | ----------------- | --------------------------------------------------------------------------------------------------- |
+| `scripts/extract-readings.ts` | `npm run extract` | Two-pass: OCR PDFs via Vertex AI → parse structured entries → store in SQLite                       |
+| `scripts/compile-notes.ts`    | `npm run compile` | Compile typed notes and Granola.ai lecture transcripts → parse structured entries → store in SQLite |
+| `scripts/export.ts`           | `npm run export`  | Query DB → generate `output/compiled-notes.md` and `output/theology-data.json`                      |
 
 All data is stored in `theology.db` (SQLite, local) as the single source of truth.
 
@@ -21,6 +21,7 @@ All data is stored in `theology.db` (SQLite, local) as the single source of trut
 ## Course Outline
 
 ### SET 1 — The Human Starting Point
+
 - Desire
 - Problem vs. Mystery
 - Absolute Certainty
@@ -28,6 +29,7 @@ All data is stored in `theology.db` (SQLite, local) as the single source of trut
 - Wonder
 
 ### SET 2 — Approaches to the Divine
+
 - The Six Paths
 - Sacred
 - Faith
@@ -35,6 +37,7 @@ All data is stored in `theology.db` (SQLite, local) as the single source of trut
 - Religion
 
 ### SET 3 — Images and Revelation
+
 - Perfectionism
 - Distorted Images of God
 - Christian "Atheism"
@@ -54,9 +57,9 @@ All data is stored in `theology.db` (SQLite, local) as the single source of trut
 ## Setup
 
 ```bash
-# 1. Clone the repo and enter the theology-12 directory
+# 1. Clone the repo and enter the theology-11 directory
 git clone https://github.com/CelestialBrain/college.git
-cd college/theology-12
+cd college/theology-11
 
 # 2. Install dependencies
 npm install
@@ -65,7 +68,7 @@ npm install
 cp .env.example .env
 # Edit .env and set GCP_PROJECT_ID (and optionally GCP_LOCATION)
 
-# 4. Place your GCP service account JSON key at theology-12/service-account.json
+# 4. Place your GCP service account JSON key at theology-11/service-account.json
 #    (or adjust GOOGLE_APPLICATION_CREDENTIALS in .env to point to your key)
 ```
 
@@ -86,7 +89,7 @@ GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
 Drop PDF files into the `readings/` folder:
 
 ```
-theology-12/
+theology-11/
 └── readings/
     ├── week-01-desire.pdf
     └── week-02-mystery.pdf
@@ -97,7 +100,7 @@ theology-12/
 Drop `.txt` or `.md` files into the `notes/` folder:
 
 ```
-theology-12/
+theology-11/
 └── notes/
     ├── lecture-01-typed.md          ← source_type: notes
     └── granola-lecture-02.txt       ← source_type: granola (filename contains "granola")
@@ -122,7 +125,7 @@ npm run export    # Generate output files
 After running, find your study documents in `output/`:
 
 ```
-theology-12/
+theology-11/
 └── output/
     ├── compiled-notes.md      ← structured study notes (Markdown)
     └── theology-data.json     ← full DB dump as JSON
@@ -132,13 +135,13 @@ theology-12/
 
 ## Scripts Reference
 
-| Script | Command | Description |
-|---|---|---|
-| `extract` | `npm run extract` | OCR PDFs → extract structured entries → store in DB |
-| `compile` | `npm run compile` | Process notes/Granola files → store in DB |
-| `export` | `npm run export` | Query DB → generate `compiled-notes.md` + `theology-data.json` |
-| `all` | `npm run all` | Run `extract`, then `compile`, then `export` |
-| `reset-db` | `npm run reset-db` | Delete `theology.db` (for a clean start) |
+| Script     | Command            | Description                                                    |
+| ---------- | ------------------ | -------------------------------------------------------------- |
+| `extract`  | `npm run extract`  | OCR PDFs → extract structured entries → store in DB            |
+| `compile`  | `npm run compile`  | Process notes/Granola files → store in DB                      |
+| `export`   | `npm run export`   | Query DB → generate `compiled-notes.md` + `theology-data.json` |
+| `all`      | `npm run all`      | Run `extract`, then `compile`, then `export`                   |
+| `reset-db` | `npm run reset-db` | Delete `theology.db` (for a clean start)                       |
 
 ---
 
@@ -146,12 +149,12 @@ theology-12/
 
 The pipeline uses a local SQLite database (`theology.db`) with four tables:
 
-| Table | Purpose |
-|---|---|
-| `sets` | Course sets (SET1, SET2, SET3) |
-| `topics` | Course topics linked to sets |
-| `entries` | All extracted knowledge items, deduplicated by content hash |
-| `glossary` | Key term definitions, linked to entries |
+| Table      | Purpose                                                     |
+| ---------- | ----------------------------------------------------------- |
+| `sets`     | Course sets (SET1, SET2, SET3)                              |
+| `topics`   | Course topics linked to sets                                |
+| `entries`  | All extracted knowledge items, deduplicated by content hash |
+| `glossary` | Key term definitions, linked to entries                     |
 
 The schema is idempotent — safe to run on an existing database (`CREATE TABLE IF NOT EXISTS`). The sets and topics are seeded automatically on first run.
 
@@ -181,6 +184,7 @@ The `extract-readings.ts` script uses a deliberate two-pass design:
 2. **Extraction Pass** — Send the raw OCR text (not the PDF) to Gemini with instructions to parse it into structured JSON entries.
 
 **Why two passes?**
+
 - The raw OCR text is saved to disk. If you need to tune the extraction prompt, you can re-run only the cheap extraction pass against the saved text — without making another expensive PDF OCR call.
 - It also provides a useful audit trail: you can inspect exactly what the OCR captured before the structured extraction step.
 

@@ -9,7 +9,7 @@ export type ContentType =
   | 'raw-text'
   | 'chapter-heading';
 
-export type SourceType = 'reading' | 'notes' | 'granola';
+export type SourceType = 'reading' | 'notes' | 'granola' | 'handwritten';
 
 export interface Entry {
   id: number;

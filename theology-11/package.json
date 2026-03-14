@@ -1,13 +1,14 @@
 {
-  "name": "theology-12",
+  "name": "theology-11",
   "version": "1.0.0",
-  "description": "Theology 12 notes pipeline — OCR, compile, export via Vertex AI + SQLite",
+  "description": "Theology 11 notes pipeline — OCR, compile, export via Vertex AI + SQLite",
   "private": true,
   "scripts": {
     "extract": "ts-node scripts/extract-readings.ts",
     "compile": "ts-node scripts/compile-notes.ts",
+    "handwritten": "ts-node scripts/extract-handwritten.ts",
     "export": "ts-node scripts/export.ts",
-    "all": "npm run extract && npm run compile && npm run export",
+    "all": "npm run extract && npm run compile && npm run handwritten && npm run export",
     "reset-db": "node -e \"require('fs').rmSync('theology.db', { force: true }); console.log('theology.db deleted.');\""
   },
   "dependencies": {

@@ -4,7 +4,7 @@ Monorepo for college course tools and scripts.
 
 ## Courses
 
-- **[theology-12/](./theology-12/)** — Theology 12 notes pipeline (OCR, compilation, SQLite storage, export)
+- **[theology-11/](./theology-11/)** — Theology 11 notes pipeline (OCR, compilation, SQLite storage, export)
 
 ## Structure
 

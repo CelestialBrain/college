@@ -3,7 +3,11 @@ node_modules/
 *.db
 *.ocr.txt
 dist/
-theology-12/output/*.md
-theology-12/output/*.json
+theology-11/output/*.md
+theology-11/output/*.json
 service-account.json
 .DS_Store
+
+# Handwritten notes: originals and converted images (keep local, too large for git)
+*/notes/handwritten/
+*/notes/handwritten-jpeg/
