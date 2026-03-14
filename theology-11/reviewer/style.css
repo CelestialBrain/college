@@ -749,6 +749,42 @@ body {
   text-align: justify;
 }
 
+.review-text strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.review-text em {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.review-heading {
+  font-family: 'Playfair Display', serif;
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 28px 0 12px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+h3.review-heading {
+  font-size: 1.2rem;
+}
+
+.review-list {
+  margin: 8px 0 18px 0;
+  padding-left: 24px;
+  list-style-type: '→  ';
+}
+
+.review-list li {
+  margin-bottom: 8px;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+
 /* ── Glossary Cards ──────────────────────────────────────── */
 .glossary-card {
   padding: 16px 20px;

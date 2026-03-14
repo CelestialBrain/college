@@ -10,6 +10,61 @@ let quizIndex = 0;
 let quizScore = 0;
 let selectedQuizTopics = new Set();
 
+// ── Lightweight Markdown → HTML ─────────────────────────────
+function renderMarkdown(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+    if (!line) {
+      if (inList) { html += '</ul>'; inList = false; }
+      continue;
+    }
+
+    // Headers → styled divs
+    if (line.startsWith('### ')) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<h4 class="review-heading">${inlineFormat(line.slice(4))}</h4>`;
+      continue;
+    }
+    if (line.startsWith('## ')) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<h3 class="review-heading">${inlineFormat(line.slice(3))}</h3>`;
+      continue;
+    }
+
+    // Bullet lists
+    if (line.startsWith('- ') || line.startsWith('* ')) {
+      if (!inList) { html += '<ul class="review-list">'; inList = true; }
+      html += `<li>${inlineFormat(line.slice(2))}</li>`;
+      continue;
+    }
+    // Numbered lists like "1. "
+    const numMatch = line.match(/^\d+\.\s+(.*)/);
+    if (numMatch) {
+      if (!inList) { html += '<ul class="review-list">'; inList = true; }
+      html += `<li>${inlineFormat(numMatch[1])}</li>`;
+      continue;
+    }
+
+    // Regular paragraph
+    if (inList) { html += '</ul>'; inList = false; }
+    html += `<p>${inlineFormat(line)}</p>`;
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
+function inlineFormat(text) {
+  // Bold: **text**
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Italic: *text* (but not inside **)
+  text = text.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+  return text;
+}
 // ── Init ────────────────────────────────────────────────────
 async function init() {
   try {
@@ -126,12 +181,9 @@ function showTopic(slug) {
   
   // Full review (new field)
   if (topic.review) {
-    const paragraphs = topic.review.split('\n').filter((p) => p.trim());
-    html += `<div class="review-text">${paragraphs.map((p) => `<p>${p}</p>`).join('')}</div>`;
+    html += `<div class="review-text">${renderMarkdown(topic.review)}</div>`;
   } else if (topic.summary) {
-    // Fallback to old summary
-    const paragraphs = topic.summary.split('\n').filter((p) => p.trim());
-    html += `<div class="review-text">${paragraphs.map((p) => `<p>${p}</p>`).join('')}</div>`;
+    html += `<div class="review-text">${renderMarkdown(topic.summary)}</div>`;
   }
 
   // Key takeaways
@@ -512,7 +564,7 @@ function showReading(index) {
   // Overview
   html += `<div class="topic-content-panel active" id="panel-r-overview">`;
   if (r.overview) {
-    html += `<div class="review-text">${r.overview.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}</div>`;
+    html += `<div class="review-text">${renderMarkdown(r.overview)}</div>`;
   }
   html += `</div>`;
 
