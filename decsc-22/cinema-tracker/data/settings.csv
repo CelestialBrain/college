@@ -1,0 +1,7 @@
+Setting,Value,Notes
+Your Location (preset),Makati CBD,"Pick from dropdown — drives distance calc on Dashboard"
+Your Latitude,14.5547,"Auto-fills from preset OR type manually"
+Your Longitude,121.0244,"Auto-fills from preset OR type manually"
+Max Distance (km),20,"Only show cinemas within this radius"
+Max Budget (PHP),450,"Only show showtimes at or below this price"
+Movie Filter (optional),,"Type a movie name to filter the dashboard (case-insensitive partial match)"
