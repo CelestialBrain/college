@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.db
+output/*.json
+output/*.md
+mcp-server/node_modules/
+mcp-server/dist/
